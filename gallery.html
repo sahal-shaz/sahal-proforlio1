@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon" />
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mixitup/3.3.1/mixitup.min.js"></script>
+    <title>Gallery - MUHAMMED SAHAL TK</title>
+
+    <style>
+        /* PAGE SPACING */
+        .work-page-padding {
+            padding-top: 7rem !important;
+            min-height: 100vh;
+        }
+
+        /* FILTERS MENU */
+        .work__filters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            column-gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .work__item {
+            cursor: pointer;
+            color: var(--title-color);
+            padding: 0.25rem 0.75rem;
+            font-weight: var(--font-medium);
+            border-radius: 0.5rem;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .work__item:hover {
+            background-color: var(--container-color);
+        }
+
+        .active-work {
+            background-color: var(--first-color) !important;
+            color: #fff !important;
+        }
+
+        /* MOBILE SCROLL FOR FILTERS */
+        @media screen and (max-width: 576px) {
+            .work__filters {
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+                justify-content: flex-start;
+                padding-bottom: 10px;
+            }
+
+            .work__item {
+                flex: 0 0 auto;
+                margin-right: 0.5rem;
+            }
+        }
+
+        /* --- GRID LAYOUT --- */
+        .work__title {
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .work__container {
+            max-width: 1400px !important; 
+            width: 95% !important;
+            margin-left: auto;
+            margin-right: auto;
+            
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr; /* Mobile: 1 Column */
+            justify-content: center;
+            align-items: start;
+        }
+
+        @media screen and (min-width: 576px) {
+            .work__container {
+                gap: 1.5rem;
+                grid-template-columns: repeat(2, 1fr); /* Tablet: 2 Columns */
+            }
+        }
+
+        @media screen and (min-width: 992px) {
+            .work__container {
+                grid-template-columns: repeat(3, 1fr); /* Desktop: 3 Columns */
+            }
+        }
+
+        /* --- VIDEO WRAPPERS (HEIGHT DECREASED) --- */
+        
+        .video-box-drive {
+            position: relative;
+            /* CHANGED: Decreased from 177.77% to 150%. 
+               This makes the video box shorter vertically. */
+            padding-bottom: 150%; 
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background-color: #000;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Horizontal Video */
+        .video-box-drive-horizontal {
+            position: relative;
+            padding-bottom: 56.25%; 
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background-color: #000;
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+
+        /* Thumbnail Image Logic */
+        .video-thumb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures image fills the box perfectly */
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
+
+        .thumb-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .thumb-play-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .thumb-play-icon::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-left: 14px solid #fff;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            margin-left: 4px;
+        }
+
+        .video-box-drive iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            z-index: 1; 
+        }
+
+        .video-box-drive.playing .video-thumb,
+        .video-box-drive.playing .thumb-overlay {
+            display: none;
+        }
+        .video-box-drive.playing iframe {
+            z-index: 5;
+        }
+
+        /* IMAGES */
+        .work__img {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .work__img:hover {
+            opacity: 0.9;
+        }
+
+        /* --- LIGHTBOX STYLES --- */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: white;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+            z-index: 10000;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header" id="header">
+        <nav class="nav container">
+            <a href="index.html" class="nav__logo">MUHAMMED SAHAL TK</a>
+            <div>
+                <i class="bx bx-brush change__color change__purple" onclick="set_color_purple()"></i>
+                <i class="bx bx-brush change__color change__pink" onclick="set_color_pink()"></i>
+                <i class="bx bx-brush change__color change__orange" onclick="set_color_orange()"></i>
+                <i class="bx bx-brush change__color change__blue" onclick="set_color_blue()"></i>
+                <i class="bx bx-brush change__color change__bluegray" onclick="set_color_bluegray()"></i>
+            </div>
+            <div class="nav__menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html#home" class="nav__link"><i class="bx bx-home-alt"></i></a>
+                    </li>
+                    <li class="nav__item"><a href="index.html#about" class="nav__link"><i class="bx bx-user"></i></a>
+                    </li>
+                    <li class="nav__item"><a href="#" class="nav__link active-link"><i
+                                class="bx bx-briefcase-alt-2"></i></a></li>
+                    <li class="nav__item"><a href="index.html#contact" class="nav__link"><i
+                                class="bx bx-message-square-detail"></i></a></li>
+                </ul>
+            </div>
+            <i class="bx bx-moon change-theme" id="theme-button"></i>
+        </nav>
+    </header>
+
+    <main class="main">
+        <section class="work section work-page-padding" id="work">
+            <span class="section__subtitle">My Portfolio</span>
+            <h2 class="section__title">All Projects Gallery</h2>
+
+            <div class="work__filters">
+                <span class="work__item active-work" data-filter='.auto-reels'>Automotive Reels</span>
+                <span class="work__item" data-filter='.auto-photos'>Automotive Photos</span>
+                <span class="work__item" data-filter='.content-reels'>Content Creation</span>
+                <span class="work__item" data-filter='.re-reels'>Real Estate Reels</span>
+                <span class="work__item" data-filter='.re-photos'>Real Estate Photos</span>
+                <span class="work__item" data-filter='.wed-reels'>Wedding/Model Reels</span>
+                <span class="work__item" data-filter='.wed-photos'>Wedding/Model Photos</span>
+                <span class="work__item" data-filter='.food-reels'>Food/Prod Reels</span>
+                <span class="work__item" data-filter='.food-photos'>Food/Prod Photos</span>
+                <span class="work__item" data-filter='.event-reels'>Event/Com Reels</span>
+                <span class="work__item" data-filter='.event-photos'>Event/Com Photos</span>
+            </div>
+
+            <div class="work__container container grid">
+
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1CR8ujgIVyIZkyqst5fwCEaCAvuM4xOi8/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 1</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t2.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1O2ONWEGsDH_GmSOAkuITfJJ-ETkMyDug/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 2</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/11e4RLR_W-9tQIAM8r_QFaVIdNJxs2K-F/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 3</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t4.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/17gGFiLwvt740DQoXrgyO2GjecM9n17UR/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 4</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t5.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1qjecuBMo3gVEmnK1PohIvln_H3IQG6rJ/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 5</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t6.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1J_5HZO3alWnIRJFowVRMuD6TUxiMKusZ/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 6</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t7.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1qezxxKaUPxIWBFFg9yda7qTM9He5_uYj/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 7</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t8.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1y1h0GQttGBphf8ow7UX0QfhrrL2j2OOy/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 8</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t9.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/10M6mjw4GKJ1RQO7eEjeIHMZkkZ1mswHf/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 9</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t10.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/10M6mjw4GKJ1RQO7eEjeIHMZkkZ1mswHf/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 10</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/t11.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1L8zJRxGy0znroZNzWS-VqOZN8JeImAhH/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 11</h3>
+                </div>
+                <div class="work__card mix auto-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/t13.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1fCZeDM3b6OK3cARkIKZ4K_Dii05RgCUV/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Automotive Reel 12</h3>
+                </div>
+
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive1.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive2.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive3.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive4.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive5.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive6.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive7.jpg" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive8.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive9.jpg" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive10.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive11.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive13.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive14.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive15.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive16.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive17.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive18.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive19.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive20.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive21.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive22.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive23.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive28.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive25.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+                <div class="work__card mix auto-photos">
+                    <img src="assets/img/automotive pic/automotive26.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Automotive Photo</h3>
+                </div>
+
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c1.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1rSM7kGVxIddFu8SSZLa3xRmr1xz4q33K/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c2.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/14R2tEb_t091IakDebLzfYDJnCSiqHQtM/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1y-xMzv877IH7VqGo9ergU6GqG_y1127O/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c4.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1aanCWFcyU-VjyQPV7w0Zmx_m0DX8uQkI/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c5.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1zR-kM4LOL1XVHdu1AcbWBb7R5IRf-F6j/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c6.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1--q05y2a6cvdsaPYkgM_LCSxyqCzC2zK/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c7.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1I0J_BZAgjUBuWJppTc_vkGuO9lkGbFeO/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c8.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1Tj9Mv1xqebKrfnCosRfmhmJbnnm3AGZb/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c9.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1E4bXQ_SFZb3lXt3u9Yx1v2QfGmz1GgKc/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c10.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/10M_mbDmHMJRJBM7BYw8KAwN2M2-dH13i/preview " allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation8</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c11.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1c8DIPwCGsj1akhLnYezIFnc6CSoYRO08/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+                <div class="work__card mix content-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/cg" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/10dBWkx0Je27G6kQjU5SNbk4bC1HAFQ0n/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Content Creation</h3>
+                </div>
+
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/auto thumb/c13.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/10dBWkx0Je27G6kQjU5SNbk4bC1HAFQ0n/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/r1.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1qxUAexBkBvDM-peh3TQRTB_E6Mg-nyFl/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/r5.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1rvMtXiahOgtuB2S_nIC9BuMSBlG2eJHL/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/r3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1n8Es4q5w5bFiWLuxx0PEswLiydHuIjS8/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/r4.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1b0Cpstd3WrEI4IKp63dArbjM0KUs0kZn/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+                <div class="work__card mix re-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/R1.webp" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/REPLACE_WITH_YOUR_VIDEO_ID/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Real Estate Reel</h3>
+                </div>
+
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic10.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic8.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic26.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic2.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic3.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic4.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic5.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic6.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic17.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic9.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic1.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic12.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic13.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic14.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic15.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic16.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic17.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic18.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic19.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic20.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic21.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic22.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic23.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic24.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic25.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic28.jpg" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic29.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+                <div class="work__card mix re-photos">
+                    <img src="assets/img/rpic11.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Real Estate Photo</h3>
+                </div>
+
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w1.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/12FbB1fQgaJFD1SPXbExKnSVcRneCTTQ0/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w2.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1bPcOrOq-CAlIUTnmJcmIaWGC0dzUcBbN/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1D52_744kKNf3adeRVMPRdy7tRke-jMy7/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w4.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1I7bdJ4xACOsz2erx-sN2Q_JHYf3qmnYS/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w5.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/11cIjqu5pv9rU9XgBOctYOdEKvmkXQhme/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w6.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1ZPFjdmL_zlwG5LVID1HZjNhMHeESkabG/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w7.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1Lh8w9Hz3dzEePMm7ldRjSuVdAb8402M6/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w8.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1SBaUKx4LVoMq6DPmRhnGTKcLmtvcXFUz/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w9.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1Kp-FyE9LB8QduuxVBa-qtwSEf_20hg9f/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w11.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1boo2FSpxdemcQZEme80dOEeuumZqIWE3/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w19.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1JvaudCGitYWPrQUs73Hk9CGe8N5CuWZ5/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w20.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1CY82XX2sH7s1tsqnAsN_SA2CJ1zxuPA5/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w21.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1ieYeLoz5jTDhkiFYYtFZeQIAbaANR_MZ/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w15.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1Oe774AlVCMQ3278yBTYEaXzssayQ3zAY/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+                <div class="work__card mix wed-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/w13.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1kpTwho4rX5HR_W1vvrYlMVMeht-30dQ8/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Wedding Reel</h3>
+                </div>
+
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l1.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l2.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l3.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l4.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l5.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l7.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l8.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l9.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l10.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l11.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l12.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l13.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l14.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l15.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l16.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l17.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l18.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l19.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l20.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l21.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l22.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l23.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l24.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l25.jpg" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l26.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l27.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l28.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l29.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l30.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l31.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l32.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l34.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l35.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l36.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l37.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l38.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l39.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l40.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l41.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l42.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l43.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l44.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l45.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+                <div class="work__card mix wed-photos">
+                    <img src="assets/img/l46.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Wedding Photo</h3>
+                </div>
+
+                <div class="work__card mix food-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/dt1.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1HI8wkBJa3Gd4pzk-K9wZ4zIo02JjVAYc/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Food Reel 1</h3>
+                </div>
+                <div class="work__card mix food-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/dt2.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1InILydveC7-ecnVihKu4Z8UkU3J4a_1o/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Food Reel 2</h3>
+                </div>
+                <div class="work__card mix food-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/dt3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/11PlwrAsSohYAcTvS3xciZZ3qRMjdNdwU/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Food Reel 3</h3>
+                </div>
+
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f1.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f3.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f4.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f5.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f6.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f7.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f8.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f9.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f10.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f11.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f12.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f14.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f13.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f15.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f16.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f17.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f18.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f19.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f20.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f21.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f22.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f23.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f24.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f25.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f26.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f27.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f28.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f29.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f30.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f31.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+                <div class="work__card mix food-photos">
+                    <img src="assets/img/f32.webp" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Food Photo</h3>
+                </div>
+
+                <div class="work__card mix event-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/et1.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1PI_5JUgZpJnh0nXWashimbtnOIJxI-hv/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Event Reel 1</h3>
+                </div>
+                <div class="work__card mix event-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/e2.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/17yEVeUaY7OTHYiLzuClBPSDqSA16qlRh/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Event Reel 2</h3>
+                </div>
+                <div class="work__card mix event-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/et3.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1Mfys1CQI-R5hKDRKHP_yZrB6pcHTaUMr/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Event Reel 3</h3>
+                </div>
+                <div class="work__card mix event-reels">
+                    <div class="video-box-drive" onclick="this.classList.add('playing')">
+                        <img src="assets/img/et4.png" class="video-thumb" alt="">
+                        <div class="thumb-overlay"><div class="thumb-play-icon"></div></div>
+                        <iframe src="https://drive.google.com/file/d/1WOUux8qadZp3ehAMrjPaM_sUP2XM8yuC/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="work__title">Event Reel 4</h3>
+                </div>
+
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n1.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n2.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n3.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n4.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n5.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n6.jpg" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n7.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n8.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n9.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n10.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n11.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n12.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n13.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n14.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+                <div class="work__card mix event-photos">
+                    <img src="assets/img/n15.JPG" alt="" class="work__img" loading="lazy">
+                    <h3 class="work__title">Event Photo</h3>
+                </div>
+
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="index.html" class="button">Back to Home</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer__container container">
+            <h1 class="footer__title">MUHAMMED SAHAL TK</h1>
+            <ul class="footer__list">
+                <li><a href="index.html#about" class="footer__link">About</a></li>
+                <li><a href="#" class="footer__link">Projects</a></li>
+            </ul>
+            <span class="footer__copy">&#169; MUHAMMED SAHAL TK. All rights reserved</span>
+        </div>
+    </footer>
+
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightbox-close">&times;</button>
+        <img src="" alt="Full Screen Image" id="lightbox-img">
+    </div>
+
+    <script src="assets/js/main.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 1. INITIALIZE MIXITUP 
+            var mixer = mixitup('.work__container', {
+                selectors: { target: '.work__card' },
+                animation: { duration: 300 },
+                load: { filter: '.auto-reels' }
+            });
+
+            // 2. CHECK IF COMING FROM PAGE 1
+            if (window.location.hash) {
+                var targetSelector = '.' + window.location.hash.replace('#', '');
+
+                mixer.filter(targetSelector);
+
+                var allBtns = document.querySelectorAll('.work__item');
+                var activeBtn = document.querySelector('.work__item[data-filter="' + targetSelector + '"]');
+
+                if (activeBtn) {
+                    allBtns.forEach(btn => btn.classList.remove('active-work'));
+                    activeBtn.classList.add('active-work');
+                }
+            }
+
+            // 3. LIGHTBOX FOR PHOTOS (FULL SCREEN)
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const closeBtn = document.getElementById('lightbox-close');
+            const allPhotos = document.querySelectorAll('.work__img');
+
+            // Open Lightbox
+            allPhotos.forEach(photo => {
+                photo.addEventListener('click', () => {
+                    lightboxImg.src = photo.src;
+                    lightbox.classList.add('active');
+                    document.body.style.overflow = 'hidden'; // Disable scroll
+                });
+            });
+
+            // Close Lightbox function
+            const closeLightbox = () => {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = 'auto'; // Enable scroll
+                setTimeout(() => { lightboxImg.src = ''; }, 300); // Clear src after animation
+            };
+
+            // Event Listeners for closing
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeLightbox);
+            }
+
+            if (lightbox) {
+                lightbox.addEventListener('click', (e) => {
+                    if (e.target === lightbox) { // Click outside image
+                        closeLightbox();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
